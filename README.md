@@ -55,7 +55,7 @@ claude --plugin-dir /path/to/claude-code-hooks-multi-agent-observability
 
 ## 📋 Manual Setup (Alternative)
 
-If you prefer not to use the plugin system, you can set up manually.
+If you prefer not to use the plugin system, you can set up manually by copying the `.claude` directory to your projects.
 
 ### Requirements
 
@@ -67,7 +67,53 @@ If you prefer not to use the plugin system, you can set up manually.
 - **OpenAI API Key** (optional) - For multi-model support
 - **ElevenLabs API Key** (optional) - For audio features
 
+### Setup Steps
+
+To integrate the observability hooks into your projects:
+
+1. **Copy the entire `.claude` directory to your project root:**
+   ```bash
+   cp -R .claude /path/to/your/project/
+   ```
+
+2. **Update the `settings.json` configuration:**
+   
+   Open `.claude/settings.json` in your project and modify the `source-app` parameter to identify your project:
+   
+   ```json
+   {
+     "hooks": {
+       "PreToolUse": [{
+         "matcher": "",
+         "hooks": [
+           {
+             "type": "command",
+             "command": "uv run $CLAUDE_PROJECT_DIR/.claude/hooks/pre_tool_use.py"
+           },
+           {
+             "type": "command",
+             "command": "uv run $CLAUDE_PROJECT_DIR/.claude/hooks/send_event.py --source-app YOUR_PROJECT_NAME --event-type PreToolUse --summarize"
+           }
+         ]
+       }],
+       // ... (similar patterns for all 12 hook events)
+     }
+   }
+   ```
+   
+   Replace `YOUR_PROJECT_NAME` with a unique identifier for your project (e.g., `my-api-server`, `react-app`, etc.).
+
+3. **Ensure the observability server is running:**
+   ```bash
+   # From the observability project directory (this codebase)
+   ./scripts/start-system.sh
+   ```
+
+Now your project will send events to the observability system whenever Claude Code performs actions.
+
 ## 🚀 Quick Start
+
+You can quickly view how this works by running this repository's `.claude` setup.
 
 ```bash
 # 1. Start both server and client
@@ -75,7 +121,13 @@ just start          # or: ./scripts/start-system.sh
 
 # 2. Open http://localhost:5173 in your browser
 
-# 3. Open Claude Code and run any command — events will stream to the dashboard
+# 3. Open Claude Code and run the following command:
+#    Run git ls-files to understand the codebase.
+
+# 4. Watch events stream in the client
+
+# 5. (Optional) Copy the .claude folder to other projects you want to emit events from:
+#    cp -R .claude /path/to/your/project/
 ```
 
 ### Using `just` (Recommended)
