@@ -73,7 +73,7 @@ To integrate the observability hooks into your projects:
 
 1. **Copy the entire `.claude` directory to your project root:**
    ```bash
-   cp -R .claude /path/to/your/project/
+   cp -r .claude /path/to/your/project/
    ```
 
 2. **Update the `settings.json` configuration:**
@@ -95,13 +95,14 @@ To integrate the observability hooks into your projects:
              "command": "uv run $CLAUDE_PROJECT_DIR/.claude/hooks/send_event.py --source-app YOUR_PROJECT_NAME --event-type PreToolUse --summarize"
            }
          ]
-       }],
-       // ... (similar patterns for all 12 hook events)
+       }]
      }
    }
    ```
    
    Replace `YOUR_PROJECT_NAME` with a unique identifier for your project (e.g., `my-api-server`, `react-app`, etc.).
+   
+   **Note:** The full configuration includes similar patterns for all 12 hook events: `PreToolUse`, `PostToolUse`, `UserPromptSubmit`, `Notification`, `Stop`, `SubagentStop`, `SubagentStart`, `PreCompact`, `SessionStart`, `SessionEnd`, `PermissionRequest`, and `PostToolUseFailure`. See `.claude/settings.json` in this repository for the complete example.
 
 3. **Ensure the observability server is running:**
    ```bash
