@@ -1,0 +1,15 @@
+{
+  "name": "observability-marketplace",
+  "description": "Multi-Agent Observability for Claude Code",
+  "owner": {
+    "name": "ehartye"
+  },
+  "plugins": [
+    {
+      "name": "observability",
+      "description": "Real-time multi-agent observability dashboard for Claude Code",
+      "version": "1.0.0",
+      "source": "./"
+    }
+  ]
+}
