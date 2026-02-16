@@ -12,8 +12,8 @@ NC='\033[0m' # No Color
 
 # Get the directory of this script
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-# Get the project root directory (parent of scripts)
-PROJECT_ROOT="$( cd "$SCRIPT_DIR/.." && pwd )"
+# Use CLAUDE_PLUGIN_ROOT if set (plugin mode), otherwise derive from script location
+PROJECT_ROOT="${CLAUDE_PLUGIN_ROOT:-$( cd "$SCRIPT_DIR/.." && pwd )}"
 
 # Read ports from environment variables or use defaults
 SERVER_PORT=${SERVER_PORT:-4000}
@@ -99,8 +99,7 @@ echo -e "📝 Process IDs:"
 echo -e "   Server PID: ${YELLOW}$SERVER_PID${NC}"
 echo -e "   Client PID: ${YELLOW}$CLIENT_PID${NC}"
 echo
-echo -e "To stop the system, run: ${YELLOW}./scripts/reset-system.sh${NC}"
-echo -e "To test the system, run: ${YELLOW}./scripts/test-system.sh${NC}"
+echo -e "To stop the system, run: ${YELLOW}/observability:stop${NC} or ${YELLOW}$PROJECT_ROOT/scripts/reset-system.sh${NC}"
 echo
 echo -e "${BLUE}Press Ctrl+C to stop both processes${NC}"
 

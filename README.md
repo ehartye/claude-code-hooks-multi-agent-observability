@@ -16,94 +16,58 @@ Claude Agents → Hook Scripts → HTTP POST → Bun Server → SQLite → WebSo
 
 ![Agent Data Flow Animation](images/AgentDataFlowV2.gif)
 
-## 📋 Setup Requirements
+## 🔌 Install as Plugin (Recommended)
 
-Before getting started, ensure you have the following installed:
+The easiest way to use this system is as a Claude Code plugin. Requires Claude Code 1.0.33+.
+
+```bash
+# 1. Add the marketplace
+/plugin marketplace add ehartye/claude-code-hooks-multi-agent-observability
+
+# 2. Install the plugin
+/plugin install observability@observability-marketplace
+```
+
+Once installed, all 12 hook event types are automatically captured. Use the plugin commands:
+
+```bash
+/observability:start       # Start the dashboard (server + client)
+/observability:stop        # Stop the dashboard
+/observability:status      # Check if server/client are running
+/observability:reset-db    # Clear the event database
+```
+
+Open http://localhost:5173 to view the dashboard.
+
+### Plugin Prerequisites
+
+- **[Astral uv](https://docs.astral.sh/uv/)** - Fast Python package manager (required for hook scripts)
+- **[Bun](https://bun.sh/)** - For running the server and client
+- **Anthropic API Key** - Set as `ANTHROPIC_API_KEY` environment variable (for AI event summaries)
+
+### Local Development / Testing
+
+To test the plugin locally without installing from a marketplace:
+
+```bash
+claude --plugin-dir /path/to/claude-code-hooks-multi-agent-observability
+```
+
+## 📋 Manual Setup (Alternative)
+
+If you prefer not to use the plugin system, you can set up manually.
+
+### Requirements
 
 - **[Claude Code](https://docs.anthropic.com/en/docs/claude-code)** - Anthropic's official CLI for Claude
 - **[Astral uv](https://docs.astral.sh/uv/)** - Fast Python package manager (required for hook scripts)
 - **[Bun](https://bun.sh/)**, **npm**, or **yarn** - For running the server and client
 - **[just](https://github.com/casey/just)** (optional) - Command runner for project recipes
 - **Anthropic API Key** - Set as `ANTHROPIC_API_KEY` environment variable
-- **OpenAI API Key** (optional) - For multi-model support with just-prompt MCP tool
+- **OpenAI API Key** (optional) - For multi-model support
 - **ElevenLabs API Key** (optional) - For audio features
-- **Firecrawl API Key** (optional) - For web scraping features
-
-### Configure .claude Directory
-
-To setup observability in your repo,we need to copy the .claude directory to your project root.
-
-To integrate the observability hooks into your projects:
-
-1. **Copy the entire `.claude` directory to your project root:**
-   ```bash
-   cp -R .claude /path/to/your/project/
-   ```
-
-2. **Update the `settings.json` configuration:**
-   
-   Open `.claude/settings.json` in your project and modify the `source-app` parameter to identify your project:
-   
-   ```json
-   {
-     "hooks": {
-       "PreToolUse": [{
-         "matcher": "",
-         "hooks": [
-           {
-             "type": "command",
-             "command": "uv run .claude/hooks/pre_tool_use.py"
-           },
-           {
-             "type": "command",
-             "command": "uv run .claude/hooks/send_event.py --source-app YOUR_PROJECT_NAME --event-type PreToolUse --summarize"
-           }
-         ]
-       }],
-       "PostToolUse": [{
-         "matcher": "",
-         "hooks": [
-           {
-             "type": "command",
-             "command": "uv run .claude/hooks/post_tool_use.py"
-           },
-           {
-             "type": "command",
-             "command": "uv run .claude/hooks/send_event.py --source-app YOUR_PROJECT_NAME --event-type PostToolUse --summarize"
-           }
-         ]
-       }],
-       "UserPromptSubmit": [{
-         "hooks": [
-           {
-             "type": "command",
-             "command": "uv run .claude/hooks/user_prompt_submit.py --log-only"
-           },
-           {
-             "type": "command",
-             "command": "uv run .claude/hooks/send_event.py --source-app YOUR_PROJECT_NAME --event-type UserPromptSubmit --summarize"
-           }
-         ]
-       }]
-       // ... (similar patterns for all 12 hook events: Notification, Stop, SubagentStop,
-      //      SubagentStart, PreCompact, SessionStart, SessionEnd, PermissionRequest, PostToolUseFailure)
-     }
-   }
-   ```
-   
-   Replace `YOUR_PROJECT_NAME` with a unique identifier for your project (e.g., `my-api-server`, `react-app`, etc.).
-
-3. **Ensure the observability server is running:**
-   ```bash
-   # From the observability project directory (this codebase)
-   ./scripts/start-system.sh
-   ```
-
-Now your project will send events to the observability system whenever Claude Code performs actions.
 
 ## 🚀 Quick Start
-
-You can quickly view how this works by running this repository's `.claude` setup.
 
 ```bash
 # 1. Start both server and client
@@ -111,13 +75,7 @@ just start          # or: ./scripts/start-system.sh
 
 # 2. Open http://localhost:5173 in your browser
 
-# 3. Open Claude Code and run the following command:
-Run git ls-files to understand the codebase.
-
-# 4. Watch events stream in the client
-
-# 5. Copy the .claude folder to other projects you want to emit events from.
-cp -R .claude <directory of your codebase you want to emit events from>
+# 3. Open Claude Code and run any command — events will stream to the dashboard
 ```
 
 ### Using `just` (Recommended)
@@ -139,89 +97,51 @@ just hooks        # List all hook scripts
 just open         # Open dashboard in browser
 ```
 
-## 📁 Project Structure
+## 📁 Project Structure (Plugin Layout)
 
 ```
 claude-code-hooks-multi-agent-observability/
 │
-├── apps/                    # Application components
-│   ├── server/             # Bun TypeScript server
-│   │   ├── src/
-│   │   │   ├── index.ts    # Main server with HTTP/WebSocket endpoints
-│   │   │   ├── db.ts       # SQLite database management & migrations
-│   │   │   └── types.ts    # TypeScript interfaces
-│   │   ├── package.json
-│   │   └── events.db       # SQLite database (gitignored)
-│   │
-│   └── client/             # Vue 3 TypeScript client
-│       ├── src/
-│       │   ├── App.vue     # Main app with theme & WebSocket management
-│       │   ├── components/
-│       │   │   ├── EventTimeline.vue      # Event list with auto-scroll
-│       │   │   ├── EventRow.vue           # Individual event display
-│       │   │   ├── FilterPanel.vue        # Multi-select filters
-│       │   │   ├── ChatTranscriptModal.vue # Chat history viewer
-│       │   │   ├── StickScrollButton.vue  # Scroll control
-│       │   │   └── LivePulseChart.vue     # Real-time activity chart
-│       │   ├── composables/
-│       │   │   ├── useWebSocket.ts        # WebSocket connection logic
-│       │   │   ├── useEventColors.ts      # Color assignment system
-│       │   │   ├── useChartData.ts        # Chart data aggregation
-│       │   │   └── useEventEmojis.ts      # Event type emoji mapping
-│       │   ├── utils/
-│       │   │   └── chartRenderer.ts       # Canvas chart rendering
-│       │   └── types.ts    # TypeScript interfaces
-│       ├── .env.sample     # Environment configuration template
-│       └── package.json
+├── .claude-plugin/              # Plugin metadata
+│   ├── plugin.json              # Plugin manifest
+│   └── marketplace.json         # Self-contained marketplace definition
 │
-├── .claude/                # Claude Code integration
-│   ├── hooks/             # Hook scripts (Python with uv)
-│   │   ├── send_event.py          # Universal event sender (all 12 event types)
-│   │   ├── pre_tool_use.py        # Tool validation, blocking & summarization
-│   │   ├── post_tool_use.py       # Result logging with MCP tool detection
-│   │   ├── post_tool_use_failure.py # Tool failure logging
-│   │   ├── permission_request.py  # Permission request logging
-│   │   ├── notification.py        # User interaction events (type-aware TTS)
-│   │   ├── user_prompt_submit.py  # User prompt logging & validation
-│   │   ├── stop.py               # Session completion (stop_hook_active guard)
-│   │   ├── subagent_stop.py      # Subagent completion with transcript path
-│   │   ├── subagent_start.py     # Subagent lifecycle start tracking
-│   │   ├── pre_compact.py        # Context compaction with custom instructions
-│   │   ├── session_start.py      # Session start with agent type & model
-│   │   ├── session_end.py        # Session end with reason tracking
-│   │   └── validators/           # Stop hook validators
-│   │       ├── validate_new_file.py     # Validate file creation
-│   │       └── validate_file_contains.py # Validate file content sections
-│   │
-│   ├── agents/team/       # Agent team definitions
-│   │   ├── builder.md     # Engineering agent with linting hooks
-│   │   └── validator.md   # Read-only validation agent
-│   │
-│   ├── commands/          # Custom slash commands
-│   │   └── plan_w_team.md # Team-based planning command
-│   │
-│   ├── status_lines/      # Status line scripts
-│   │   └── status_line_v6.py # Context window usage display
-│   │
-│   └── settings.json      # Hook configuration (all 12 events)
+├── hooks/                       # Plugin hooks (auto-discovered)
+│   ├── hooks.json               # Hook configuration (all 12 event types)
+│   └── scripts/                 # Python hook scripts
+│       ├── send_event.py        # Universal event sender
+│       ├── pre_tool_use.py      # Tool validation & blocking
+│       ├── post_tool_use.py     # Result logging with MCP detection
+│       ├── ...                  # 9 more event-specific scripts
+│       ├── utils/               # Shared utilities (summarizer, TTS, LLM)
+│       └── validators/          # Stop hook validators
 │
-├── justfile               # Task runner recipes (just start, just stop, etc.)
+├── commands/                    # Plugin slash commands (auto-discovered)
+│   ├── start.md                 # /observability:start
+│   ├── stop.md                  # /observability:stop
+│   ├── status.md                # /observability:status
+│   └── reset-db.md              # /observability:reset-db
 │
-├── scripts/               # Utility scripts
-│   ├── start-system.sh   # Launch server & client
-│   ├── reset-system.sh   # Stop all processes
-│   └── test-system.sh    # System validation
+├── apps/                        # Application components
+│   ├── server/                  # Bun TypeScript server (HTTP + WebSocket + SQLite)
+│   └── client/                  # Vue 3 + Vite dashboard
 │
-└── logs/                 # Application logs (gitignored)
+├── scripts/                     # Utility scripts
+│   ├── start-system.sh          # Launch server & client
+│   ├── reset-system.sh          # Stop all processes
+│   └── ensure-deps.sh           # Check/install dependencies
+│
+├── justfile                     # Task runner recipes
+└── data/                        # Runtime data (sessions, logs)
 ```
 
 ## 🔧 Component Details
 
-### 1. Hook System (`.claude/hooks/`)
+### 1. Hook System (`hooks/scripts/`)
 
 > If you want to master claude code hooks watch [this video](https://github.com/disler/claude-code-hooks-mastery)
 
-The hook system intercepts Claude Code lifecycle events:
+The hook system intercepts Claude Code lifecycle events. When installed as a plugin, hooks are configured in `hooks/hooks.json` and scripts live in `hooks/scripts/`. All paths use `${CLAUDE_PLUGIN_ROOT}` for portability.
 
 - **`send_event.py`**: Core script that sends event data to the observability server
   - Supports all 12 hook event types with event-specific field forwarding
@@ -330,41 +250,18 @@ The `UserPromptSubmit` hook captures every user prompt before Claude processes i
 
 ## 🔌 Integration
 
-### For New Projects
+### As a Plugin (Recommended)
 
-1. Copy the event sender:
-   ```bash
-   cp .claude/hooks/send_event.py YOUR_PROJECT/.claude/hooks/
-   ```
+Install the plugin and all hooks are automatically active in every Claude Code session:
 
-2. Add to your `.claude/settings.json`:
-   ```json
-   {
-     "hooks": {
-       "PreToolUse": [{
-         "matcher": ".*",
-         "hooks": [{
-           "type": "command",
-           "command": "uv run .claude/hooks/send_event.py --source-app YOUR_APP --event-type PreToolUse"
-         }]
-       }]
-     }
-   }
-   ```
-
-### For This Project
-
-Already integrated! Hooks run both validation and observability:
-```json
-{
-  "type": "command",
-  "command": "uv run .claude/hooks/pre_tool_use.py"
-},
-{
-  "type": "command",
-  "command": "uv run .claude/hooks/send_event.py --source-app cc-hook-multi-agent-obvs --event-type PreToolUse"
-}
+```bash
+/plugin marketplace add ehartye/claude-code-hooks-multi-agent-observability
+/plugin install observability@observability-marketplace
 ```
+
+### For Manual Integration
+
+If you want to add observability to a project without the plugin system, copy the hook scripts and configure `settings.json` manually. See the `hooks/hooks.json` file for the full hook configuration.
 
 ## 🧪 Testing
 

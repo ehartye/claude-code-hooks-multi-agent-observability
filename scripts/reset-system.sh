@@ -12,8 +12,8 @@ NC='\033[0m' # No Color
 
 # Get the directory of this script
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-# Get the project root directory (parent of scripts)
-PROJECT_ROOT="$( cd "$SCRIPT_DIR/.." && pwd )"
+# Use CLAUDE_PLUGIN_ROOT if set (plugin mode), otherwise derive from script location
+PROJECT_ROOT="${CLAUDE_PLUGIN_ROOT:-$( cd "$SCRIPT_DIR/.." && pwd )}"
 
 # Read ports from environment variables or use defaults
 SERVER_PORT=${SERVER_PORT:-4000}

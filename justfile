@@ -84,7 +84,7 @@ db-reset:
 test-event:
     curl -s -X POST http://localhost:{{server_port}}/events \
       -H "Content-Type: application/json" \
-      -d '{"source_app":"test","session_id":"test-1234","hook_event_type":"PreToolUse","payload":{"tool_name":"Bash","tool_input":{"command":"echo hello"}}}' \
+      -d '{"source_app":"cc-observability","session_id":"test-1234","hook_event_type":"PreToolUse","payload":{"tool_name":"Bash","tool_input":{"command":"echo hello"}}}' \
       | head -c 200
     @echo ""
 
@@ -101,11 +101,21 @@ health:
 
 # Test a hook script directly (e.g. just hook-test pre_tool_use)
 hook-test name:
-    echo '{"session_id":"test-hook","tool_name":"Bash"}' | uv run {{project_root}}/.claude/hooks/{{name}}.py
+    echo '{"session_id":"test-hook","tool_name":"Bash"}' | uv run {{project_root}}/hooks/scripts/{{name}}.py
 
 # List all hook scripts
 hooks:
-    @ls -1 {{project_root}}/.claude/hooks/*.py | xargs -I{} basename {} .py
+    @ls -1 {{project_root}}/hooks/scripts/*.py | xargs -I{} basename {} .py
+
+# ─── Plugin ─────────────────────────────────────────────
+
+# Check dependencies for plugin
+check-deps:
+    {{project_root}}/scripts/ensure-deps.sh
+
+# Test plugin locally with Claude Code
+plugin-dev:
+    claude --plugin-dir {{project_root}}
 
 # ─── Open ────────────────────────────────────────────────
 

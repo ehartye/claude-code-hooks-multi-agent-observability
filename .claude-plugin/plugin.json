@@ -1,0 +1,12 @@
+{
+  "name": "observability",
+  "version": "1.0.0",
+  "description": "Real-time multi-agent observability dashboard for Claude Code — tracks all hook event types with live WebSocket streaming, session filtering, and interactive visualization",
+  "author": {
+    "name": "ehartye"
+  },
+  "homepage": "https://github.com/ehartye/claude-code-hooks-multi-agent-observability",
+  "repository": "https://github.com/ehartye/claude-code-hooks-multi-agent-observability",
+  "license": "MIT",
+  "keywords": ["observability", "monitoring", "multi-agent", "dashboard", "hooks", "visualization"]
+}
