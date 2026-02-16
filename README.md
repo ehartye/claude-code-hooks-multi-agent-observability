@@ -128,7 +128,7 @@ just start          # or: ./scripts/start-system.sh
 # 4. Watch events stream in the client
 
 # 5. (Optional) Copy the .claude folder to other projects you want to emit events from:
-#    cp -R .claude /path/to/your/project/
+#    cp -r .claude /path/to/your/project/
 ```
 
 ### Using `just` (Recommended)
